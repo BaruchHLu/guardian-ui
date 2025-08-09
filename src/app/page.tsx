@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import UserList from "./useList";
+import UserCreateForm from "./UserCreateForm";
+import UserList from "./UserList";
 import UserDetails, { User } from "./UserDetails";
 
 export default function Home() {
@@ -14,6 +15,7 @@ export default function Home() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(null);
+  const [createLoading, setCreateLoading] = useState(false);
 
   // Fetch users list
   useEffect(() => {
@@ -59,6 +61,28 @@ export default function Home() {
       });
   }, [selectedId]);
 
+  // Create user
+  const handleCreate = (name: string) => {
+    setCreateLoading(true);
+    fetch("http://localhost:4000/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name })
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to create user");
+        return res.json();
+      })
+      .then((data) => {
+        setUsers(users => [...users, data]);
+        setCreateLoading(false);
+      })
+      .catch((err) => {
+        alert(err.message);
+        setCreateLoading(false);
+      });
+  };
+
   // Update user
   const handleUpdate = (id: number, name: string) => {
     fetch(`http://localhost:4000/users/${id}`, {
@@ -99,16 +123,19 @@ export default function Home() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full p-4 md:p-24">
-      <UserList
-        users={users}
-        loading={loading}
-        error={error}
-        onSelect={setSelectedId}
-        page={page}
-        nextPage={nextPage}
-        prevPage={prevPage}
-        setPage={setPage}
-      />
+      <div>
+        <UserCreateForm onCreate={handleCreate} loading={createLoading} />
+        <UserList
+          users={users}
+          loading={loading}
+          error={error}
+          onSelect={setSelectedId}
+          page={page}
+          nextPage={nextPage}
+          prevPage={prevPage}
+          setPage={setPage}
+        />
+      </div>
       {detailsLoading ? (
         <div className="bg-gray-100 p-4 rounded-md">Loading...</div>
       ) : detailsError ? (

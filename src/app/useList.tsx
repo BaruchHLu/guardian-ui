@@ -1,42 +1,27 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import type { User } from "./UserDetails";
 
-export default function UserList() {
-    const [users, setUsers] = useState<{ id: number; name: string }[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [page, setPage] = useState(1);
-    const [nextPage, setNextPage] = useState(null);
-    const [prevPage, setPrevPage] = useState(null);
+interface UserListProps {
+    users: User[];
+    loading: boolean;
+    error: string | null;
+    onSelect: (id: number) => void;
+    page: number;
+    nextPage: number | null;
+    prevPage: number | null;
+    setPage: (page: number) => void;
+}
 
-    useEffect(() => {
-        setLoading(true);
-        setError(null);
-        fetch(`http://localhost:4000/users?page=${page}&pageSize=2`)
-            .then((res) => {
-                if (!res.ok) throw new Error("Failed to fetch users");
-                return res.json();
-            })
-            .then((data) => {
-                setUsers(data.users);
-                setNextPage(data.nextPage);
-                setPrevPage(data.prevPage);
-                setLoading(false);
-            })
-            .catch((err) => {
-                setError(err.message);
-                setLoading(false);
-            });
-    }, [page]);
-
+export default function UserList({ users, loading, error, onSelect, page, nextPage, prevPage, setPage }: UserListProps) {
     return (
         <div className="bg-gray-100 p-4 rounded-md">
             <h2 className="font-bold mb-2">User List (Paginated)</h2>
             {loading && <div>Loading...</div>}
             {error && <div className="text-red-500">{error}</div>}
             <ul className="mb-4">
-                {users.map((user: { id: number; name: string }) => (
-                    <li key={user.id} className="py-1 border-b last:border-b-0">{user.name}</li>
+                {users.map((user) => (
+                    <li key={user.id} className="py-1 border-b last:border-b-0 cursor-pointer hover:bg-gray-200" onClick={() => onSelect(user.id)}>{user.name}</li>
                 ))}
             </ul>
             <div className="flex gap-2">
